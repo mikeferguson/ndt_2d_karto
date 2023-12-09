@@ -144,6 +144,7 @@ namespace karto
                                                              kt_bool ignoreThresholdPoints,
                                                              kt_bool flipY) const
   {
+    /*
     PointVectorDouble pointReadings;
 
     Pose2 scanPose = pLocalizedRangeScan->GetSensorPose();
@@ -185,10 +186,12 @@ namespace karto
     }
 
     return pointReadings;
+    */
   }
 
   kt_bool LaserRangeFinder::Validate(SensorData* pSensorData)
   {
+    /*
     LaserRangeScan* pLaserRangeScan = dynamic_cast<LaserRangeScan*>(pSensorData);
 
     // verify number of range readings in LaserRangeScan matches the number of expected range readings
@@ -198,6 +201,7 @@ namespace karto
                 << " range readings, expected " << GetNumberOfRangeReadings() << std::endl;
       return false;
     }
+    */
 
     return true;
   }

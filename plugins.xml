@@ -1,0 +1,5 @@
+<library path="scan_matcher_karto">
+  <class type="ndt_2d::ScanMatcherKarto" base_class_type="ndt_2d::ScanMatcher">
+    <description>Scan matcher that uses Karto.</description>
+  </class>
+</library>

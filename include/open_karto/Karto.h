@@ -63,7 +63,6 @@ const kt_objecttype ObjectType_DrivePose                    = ObjectType_SensorD
 const kt_objecttype ObjectType_LaserRangeScan               = ObjectType_SensorData | 0x02;
 const kt_objecttype ObjectType_LocalizedRangeScan           = ObjectType_SensorData | 0x04;
 const kt_objecttype ObjectType_CameraImage                  = ObjectType_SensorData | 0x08;
-const kt_objecttype ObjectType_LocalizedRangeScanWithPoints = ObjectType_SensorData | 0x16;
 
 const kt_objecttype ObjectType_Header                       = ObjectType_Misc | 0x01;
 const kt_objecttype ObjectType_Parameters                   = ObjectType_Misc | 0x02;
@@ -720,16 +719,6 @@ namespace karto
   inline kt_bool IsLocalizedRangeScan(Object* pObject)
   {
     return (pObject->GetObjectType() & ObjectType_LocalizedRangeScan) == ObjectType_LocalizedRangeScan;
-  }
-
-  /**
-   * Whether the object is a localized range scan with points
-   * @param pObject object
-   * @return whether the object is a localized range scan with points
-   */
-  inline kt_bool IsLocalizedRangeScanWithPoints(Object* pObject)
-  {
-    return (pObject->GetObjectType() & ObjectType_LocalizedRangeScanWithPoints) == ObjectType_LocalizedRangeScanWithPoints;
   }
 
   /**
@@ -4977,212 +4966,12 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
 
   /**
-   * Type declaration of range readings vector
-   */
-  typedef std::vector<kt_double> RangeReadingsVector;
-
-  /**
-   * LaserRangeScan representing the range readings from a laser range finder sensor.
-   */
-  class LaserRangeScan : public SensorData
-  {
-  public:
-    // @cond EXCLUDE
-    KARTO_Object(LaserRangeScan)
-    // @endcond
-
-  public:
-    /**
-     * Constructs a scan from the given sensor with the given readings
-     * @param rSensorName
-     */
-    LaserRangeScan(const Name& rSensorName)
-      : SensorData(rSensorName)
-      , m_pRangeReadings(NULL)
-      , m_NumberOfRangeReadings(0)
-    {
-    }
-
-    /**
-     * Constructs a scan from the given sensor with the given readings
-     * @param rSensorName
-     * @param rRangeReadings
-     */
-    LaserRangeScan(const Name& rSensorName, const RangeReadingsVector& rRangeReadings)
-      : SensorData(rSensorName)
-      , m_pRangeReadings(NULL)
-      , m_NumberOfRangeReadings(0)
-    {
-      assert(rSensorName.ToString() != "");
-
-      SetRangeReadings(rRangeReadings);
-    }
-
-    /**
-     * Destructor
-     */
-    virtual ~LaserRangeScan()
-    {
-      delete [] m_pRangeReadings;
-    }
-
-  public:
-    /**
-     * Gets the range readings of this scan
-     * @return range readings of this scan
-     */
-    inline kt_double* GetRangeReadings() const
-    {
-      return m_pRangeReadings;
-    }
-
-    inline RangeReadingsVector GetRangeReadingsVector() const
-    {
-      return RangeReadingsVector(m_pRangeReadings, m_pRangeReadings + m_NumberOfRangeReadings);
-    }
-
-    /**
-     * Sets the range readings for this scan
-     * @param rRangeReadings
-     */
-    inline void SetRangeReadings(const RangeReadingsVector& rRangeReadings)
-    {
-      // ignore for now! XXXMAE BUGUBUG 05/21/2010 << TODO(lucbettaieb): What the heck is this??
-      // if (rRangeReadings.size() != GetNumberOfRangeReadings())
-      // {
-      //   std::stringstream error;
-      //   error << "Given number of readings (" << rRangeReadings.size()
-      //         << ") does not match expected number of range finder (" << GetNumberOfRangeReadings() << ")";
-      //   throw Exception(error.str());
-      // }
-
-      if (!rRangeReadings.empty())
-      {
-        if (rRangeReadings.size() != m_NumberOfRangeReadings)
-        {
-          // delete old readings
-          delete [] m_pRangeReadings;
-
-          // store size of array!
-          m_NumberOfRangeReadings = static_cast<kt_int32u>(rRangeReadings.size());
-
-          // allocate range readings
-          m_pRangeReadings = new kt_double[m_NumberOfRangeReadings];
-        }
-
-        // copy readings
-        kt_int32u index = 0;
-        const_forEach(RangeReadingsVector, &rRangeReadings)
-        {
-          m_pRangeReadings[index++] = *iter;
-        }
-      }
-      else
-      {
-        delete [] m_pRangeReadings;
-        m_pRangeReadings = NULL;
-      }
-    }
-
-    /**
-     * Gets the laser range finder sensor that generated this scan
-     * @return laser range finder sensor of this scan
-     */
-    inline LaserRangeFinder* GetLaserRangeFinder() const
-    {
-      return SensorManager::GetInstance()->GetSensorByName<LaserRangeFinder>(GetSensorName());
-    }
-
-    /**
-     * Gets the number of range readings
-     * @return number of range readings
-     */
-    inline kt_int32u GetNumberOfRangeReadings() const
-    {
-      return m_NumberOfRangeReadings;
-    }
-
-  private:
-    LaserRangeScan(const LaserRangeScan&);
-    const LaserRangeScan& operator=(const LaserRangeScan&);
-
-  private:
-    kt_double* m_pRangeReadings;
-    kt_int32u m_NumberOfRangeReadings;
-  };  // LaserRangeScan
-
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * DrivePose representing the pose value of a drive sensor.
-   */
-  class DrivePose : public SensorData
-  {
-  public:
-    // @cond EXCLUDE
-    KARTO_Object(DrivePose)
-    // @endcond
-
-  public:
-    /**
-     * Constructs a pose of the given drive sensor
-     * @param rSensorName
-     */
-    DrivePose(const Name& rSensorName)
-      : SensorData(rSensorName)
-    {
-    }
-
-    /**
-     * Destructor
-     */
-    virtual ~DrivePose()
-    {
-    }
-
-  public:
-    /**
-     * Gets the odometric pose of this scan
-     * @return odometric pose of this scan
-     */
-    inline const Pose3& GetOdometricPose() const
-    {
-      return m_OdometricPose;
-    }
-
-    /**
-     * Sets the odometric pose of this scan
-     * @param rPose
-     */
-    inline void SetOdometricPose(const Pose3& rPose)
-    {
-      m_OdometricPose = rPose;
-    }
-
-  private:
-    DrivePose(const DrivePose&);
-    const DrivePose& operator=(const DrivePose&);
-
-  private:
-    /**
-     * Odometric pose of robot
-     */
-    Pose3 m_OdometricPose;
-  };  // class DrivePose
-
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-
-  /**
    * The LocalizedRangeScan contains range data from a single sweep of a laser range finder sensor
    * in a two-dimensional space and position information. The odometer position is the position
    * reported by the robot when the range data was recorded. The corrected position is the position
    * calculated by the mapper (or localizer)
    */
-  class LocalizedRangeScan : public LaserRangeScan
+  class LocalizedRangeScan : public SensorData
   {
   public:
     // @cond EXCLUDE
@@ -5193,8 +4982,8 @@ namespace karto
     /**
      * Constructs a range scan from the given range finder with the given readings
      */
-    LocalizedRangeScan(const Name& rSensorName, const RangeReadingsVector& rReadings)
-      : LaserRangeScan(rSensorName, rReadings)
+    LocalizedRangeScan(const Name& rSensorName)
+      : SensorData(rSensorName)
       , m_IsDirty(true)
     {
     }
@@ -5205,6 +4994,8 @@ namespace karto
     virtual ~LocalizedRangeScan()
     {
     }
+
+    PointVectorDouble raw_points;
 
   private:
     mutable boost::shared_mutex m_Lock;
@@ -5248,44 +5039,7 @@ namespace karto
     inline void SetCorrectedPose(const Pose2& rPose)
     {
       m_CorrectedPose = rPose;
-
       m_IsDirty = true;
-    }
-
-    /**
-     * Gets barycenter of point readings
-     */
-    inline const Pose2& GetBarycenterPose() const
-    {
-      boost::shared_lock<boost::shared_mutex> lock(m_Lock);
-      if (m_IsDirty)
-      {
-        // throw away constness and do an update!
-        lock.unlock();
-        boost::unique_lock<boost::shared_mutex> uniqueLock(m_Lock);
-        const_cast<LocalizedRangeScan*>(this)->Update();
-      }
-
-      return m_BarycenterPose;
-    }
-
-    /**
-     * Gets barycenter if the given parameter is true, otherwise returns the scanner pose
-     * @param useBarycenter
-     * @return barycenter if parameter is true, otherwise scanner pose
-     */
-    inline Pose2 GetReferencePose(kt_bool useBarycenter) const
-    {
-      boost::shared_lock<boost::shared_mutex> lock(m_Lock);
-      if (m_IsDirty)
-      {
-        // throw away constness and do an update!
-        lock.unlock();
-        boost::unique_lock<boost::shared_mutex> uniqueLock(m_Lock);
-        const_cast<LocalizedRangeScan*>(this)->Update();
-      }
-
-      return useBarycenter ? GetBarycenterPose() : GetSensorPose();
     }
 
     /**
@@ -5294,7 +5048,7 @@ namespace karto
      */
     inline Pose2 GetSensorPose() const
     {
-      return GetSensorAt(m_CorrectedPose);
+      return m_CorrectedPose;
     }
 
     /**
@@ -5303,28 +5057,8 @@ namespace karto
      */
     void SetSensorPose(const Pose2& rScanPose)
     {
-      Pose2 deviceOffsetPose2 = GetLaserRangeFinder()->GetOffsetPose();
-      kt_double offsetLength = deviceOffsetPose2.GetPosition().Length();
-      kt_double offsetHeading = deviceOffsetPose2.GetHeading();
-      kt_double angleoffset = atan2(deviceOffsetPose2.GetY(), deviceOffsetPose2.GetX());
-      kt_double correctedHeading = math::NormalizeAngle(rScanPose.GetHeading());
-      Pose2 worldSensorOffset = Pose2(offsetLength * cos(correctedHeading + angleoffset - offsetHeading),
-                                      offsetLength * sin(correctedHeading + angleoffset - offsetHeading),
-                                      offsetHeading);
-
-      m_CorrectedPose = rScanPose - worldSensorOffset;
-
+      m_CorrectedPose = rScanPose;
       Update();
-    }
-
-    /**
-     * Computes the position of the sensor if the robot were at the given pose
-     * @param rPose
-     * @return sensor pose
-     */
-    inline Pose2 GetSensorAt(const Pose2& rPose) const
-    {
-      return Transform(rPose).TransformPose(GetLaserRangeFinder()->GetOffsetPose());
     }
 
     /**
@@ -5348,7 +5082,7 @@ namespace karto
     /**
      * Get point readings in local coordinates
      */
-    inline const PointVectorDouble& GetPointReadings(kt_bool wantFiltered = false) const
+    inline const PointVectorDouble& GetPointReadings() const
     {
       boost::shared_lock<boost::shared_mutex> lock(m_Lock);
       if (m_IsDirty)
@@ -5359,14 +5093,7 @@ namespace karto
         const_cast<LocalizedRangeScan*>(this)->Update();
       }
 
-      if (wantFiltered == true)
-      {
-        return m_PointReadings;
-      }
-      else
-      {
-        return m_UnfilteredPointReadings;
-      }
+      return m_PointReadings;
     }
 
   private:
@@ -5376,67 +5103,30 @@ namespace karto
      */
     virtual void Update()
     {
-      LaserRangeFinder* pLaserRangeFinder = GetLaserRangeFinder();
+      m_PointReadings.clear();
+      Pose2 scanPose = GetSensorPose();
 
-      if (pLaserRangeFinder != NULL)
+      // compute translated point readings
+      kt_int32u beamNum = 0;
+      for (kt_int32u i = 0; i < raw_points.size(); i++, beamNum++)
       {
-        m_PointReadings.clear();
-        m_UnfilteredPointReadings.clear();
+        double x = raw_points[i].GetX();
+        double y = raw_points[i].GetY();
+        kt_double angle = scanPose.GetHeading();
 
-        kt_double rangeThreshold = pLaserRangeFinder->GetRangeThreshold();
-        kt_double minimumAngle = pLaserRangeFinder->GetMinimumAngle();
-        kt_double angularResolution = pLaserRangeFinder->GetAngularResolution();
-        Pose2 scanPose = GetSensorPose();
+        Vector2<kt_double> point;
+        point.SetX(scanPose.GetX() + (cos(angle) * x - sin(angle) * y));
+        point.SetY(scanPose.GetY() + (sin(angle) * x + cos(angle) * y));
 
-        // compute point readings
-        Vector2<kt_double> rangePointsSum;
-        kt_int32u beamNum = 0;
-        for (kt_int32u i = 0; i < pLaserRangeFinder->GetNumberOfRangeReadings(); i++, beamNum++)
-        {
-          kt_double rangeReading = GetRangeReadings()[i];
-          if (!math::InRange(rangeReading, pLaserRangeFinder->GetMinimumRange(), rangeThreshold))
-          {
-            kt_double angle = scanPose.GetHeading() + minimumAngle + beamNum * angularResolution;
+        m_PointReadings.push_back(point);
+      }
 
-            Vector2<kt_double> point;
-            point.SetX(scanPose.GetX() + (rangeReading * cos(angle)));
-            point.SetY(scanPose.GetY() + (rangeReading * sin(angle)));
-
-            m_UnfilteredPointReadings.push_back(point);
-            continue;
-          }
-
-          kt_double angle = scanPose.GetHeading() + minimumAngle + beamNum * angularResolution;
-
-          Vector2<kt_double> point;
-          point.SetX(scanPose.GetX() + (rangeReading * cos(angle)));
-          point.SetY(scanPose.GetY() + (rangeReading * sin(angle)));
-
-          m_PointReadings.push_back(point);
-          m_UnfilteredPointReadings.push_back(point);
-
-          rangePointsSum += point;
-        }
-
-        // compute barycenter
-        kt_double nPoints = static_cast<kt_double>(m_PointReadings.size());
-        if (nPoints != 0.0)
-        {
-          Vector2<kt_double> averagePosition = Vector2<kt_double>(rangePointsSum / nPoints);
-          m_BarycenterPose = Pose2(averagePosition, 0.0);
-        }
-        else
-        {
-          m_BarycenterPose = scanPose;
-        }
-
-        // calculate bounding box of scan
-        m_BoundingBox = BoundingBox2();
-        m_BoundingBox.Add(scanPose.GetPosition());
-        forEach(PointVectorDouble, &m_PointReadings)
-        {
-          m_BoundingBox.Add(*iter);
-        }
+      // calculate bounding box of scan
+      m_BoundingBox = BoundingBox2();
+      m_BoundingBox.Add(scanPose.GetPosition());
+      forEach(PointVectorDouble, &m_PointReadings)
+      {
+        m_BoundingBox.Add(*iter);
       }
 
       m_IsDirty = false;
@@ -5459,19 +5149,9 @@ namespace karto
 
   protected:
     /**
-     * Average of all the point readings
-     */
-    Pose2 m_BarycenterPose;
-
-    /**
      * Vector of point readings
      */
     PointVectorDouble m_PointReadings;
-
-    /**
-     * Vector of unfiltered point readings
-     */
-    PointVectorDouble m_UnfilteredPointReadings;
 
     /**
      * Bounding box of localized range scan
@@ -5488,106 +5168,6 @@ namespace karto
    * Type declaration of LocalizedRangeScan vector
    */
   typedef std::vector<LocalizedRangeScan*> LocalizedRangeScanVector;
-
-////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * The LocalizedRangeScanWithPoints is an extension of the LocalizedRangeScan with precomputed points.
-   */
-  class LocalizedRangeScanWithPoints : public LocalizedRangeScan
-  {
-  public:
-    // @cond EXCLUDE
-    KARTO_Object(LocalizedRangeScanWithPoints)
-    // @endcond
-
-  public:
-    /**
-     * Constructs a range scan from the given range finder with the given readings. Precomptued points should be
-     * in the robot frame.
-     */
-    LocalizedRangeScanWithPoints(const Name& rSensorName, const RangeReadingsVector& rReadings,
-        const PointVectorDouble& rPoints)
-        : LocalizedRangeScan(rSensorName, rReadings),
-          m_Points(rPoints)
-    {
-    }
-
-    /**
-     * Destructor
-     */
-    virtual ~LocalizedRangeScanWithPoints()
-    {
-    }
-
-  private:
-    /**
-     * Update the points based on the latest sensor pose.
-     */
-    void Update()
-    {
-      m_PointReadings.clear();
-      m_UnfilteredPointReadings.clear();
-
-      Pose2 scanPose = GetSensorPose();
-      Pose2 robotPose = GetCorrectedPose();
-
-      // update point readings
-      Vector2<kt_double> rangePointsSum;
-      for (kt_int32u i = 0; i < m_Points.size(); i++)
-      {
-        // check if this has a NaN
-        if (!std::isfinite(m_Points[i].GetX()) || !std::isfinite(m_Points[i].GetY()))
-        {
-          Vector2<kt_double> point(m_Points[i].GetX(), m_Points[i].GetY());
-          m_UnfilteredPointReadings.push_back(point);
-
-          continue;
-        }
-
-        // transform into world coords
-        Pose2 pointPose(m_Points[i].GetX(), m_Points[i].GetY(), 0);
-        Pose2 result = Transform(robotPose).TransformPose(pointPose);
-        Vector2<kt_double> point(result.GetX(), result.GetY());
-
-        m_PointReadings.push_back(point);
-        m_UnfilteredPointReadings.push_back(point);
-
-        rangePointsSum += point;
-      }
-
-      // compute barycenter
-      kt_double nPoints = static_cast<kt_double>(m_PointReadings.size());
-      if (nPoints != 0.0)
-      {
-        Vector2<kt_double> averagePosition = Vector2<kt_double>(rangePointsSum / nPoints);
-        m_BarycenterPose = Pose2(averagePosition, 0.0);
-      }
-      else
-      {
-        m_BarycenterPose = scanPose;
-      }
-
-      // calculate bounding box of scan
-      m_BoundingBox = BoundingBox2();
-      m_BoundingBox.Add(scanPose.GetPosition());
-      forEach(PointVectorDouble, &m_PointReadings)
-      {
-        m_BoundingBox.Add(*iter);
-      }
-
-      m_IsDirty = false;
-    }
-
-  private:
-    LocalizedRangeScanWithPoints(const LocalizedRangeScanWithPoints&);
-    const LocalizedRangeScanWithPoints& operator=(const LocalizedRangeScanWithPoints&);
-
-  private:
-    const PointVectorDouble m_Points;
-  };  // LocalizedRangeScanWithPoints
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -5869,14 +5449,10 @@ namespace karto
      */
     virtual kt_bool AddScan(LocalizedRangeScan* pScan, kt_bool doUpdate = false)
     {
-      kt_double rangeThreshold = pScan->GetLaserRangeFinder()->GetRangeThreshold();
-      kt_double maxRange = pScan->GetLaserRangeFinder()->GetMaximumRange();
-      kt_double minRange = pScan->GetLaserRangeFinder()->GetMinimumRange();
-
       Vector2<kt_double> scanPosition = pScan->GetSensorPose().GetPosition();
 
       // get scan point readings
-      const PointVectorDouble& rPointReadings = pScan->GetPointReadings(false);
+      const PointVectorDouble& rPointReadings = pScan->GetPointReadings();
 
       kt_bool isAllInMap = true;
 
@@ -5885,26 +5461,14 @@ namespace karto
       const_forEachAs(PointVectorDouble, &rPointReadings, pointsIter)
       {
         Vector2<kt_double> point = *pointsIter;
-        kt_double rangeReading = pScan->GetRangeReadings()[pointIndex];
-        kt_bool isEndPointValid = rangeReading < (rangeThreshold - KT_TOLERANCE);
 
-        if (rangeReading <= minRange || rangeReading >= maxRange || std::isnan(rangeReading))
-        {
-          // ignore these readings
-          pointIndex++;
-          continue;
-        }
-        else if (rangeReading >= rangeThreshold)
-        {
-          // trace up to range reading
-          kt_double ratio = rangeThreshold / rangeReading;
-          kt_double dx = point.GetX() - scanPosition.GetX();
-          kt_double dy = point.GetY() - scanPosition.GetY();
-          point.SetX(scanPosition.GetX() + ratio * dx);
-          point.SetY(scanPosition.GetY() + ratio * dy);
-        }
+        // trace up to range reading
+        kt_double dx = point.GetX() - scanPosition.GetX();
+        kt_double dy = point.GetY() - scanPosition.GetY();
+        point.SetX(scanPosition.GetX() + dx);
+        point.SetY(scanPosition.GetY() + dy);
 
-        kt_bool isInMap = RayTrace(scanPosition, point, isEndPointValid, doUpdate);
+        kt_bool isInMap = RayTrace(scanPosition, point, true, doUpdate);
         if (!isInMap)
         {
           isAllInMap = false;
@@ -6493,19 +6057,9 @@ namespace karto
 
       kt_int32s* pAngleIndexPointer = m_ppLookupArray[angleIndex]->GetArrayPointer();
 
-      kt_double maxRange = pScan->GetLaserRangeFinder()->GetMaximumRange();
-
       const_forEach(Pose2Vector, &rLocalPoints)
       {
         const Vector2<kt_double>& rPosition = iter->GetPosition();
-
-        if (std::isnan(pScan->GetRangeReadings()[readingIndex]) || std::isinf(pScan->GetRangeReadings()[readingIndex]))
-        {
-          pAngleIndexPointer[readingIndex] = INVALID_SCAN;
-          readingIndex++;
-          continue;
-        }
-
 
         // counterclockwise rotation and that rotation is about the origin (0, 0).
         Vector2<kt_double> offset;
