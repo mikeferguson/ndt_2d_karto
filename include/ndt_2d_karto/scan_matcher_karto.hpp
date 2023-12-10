@@ -80,7 +80,6 @@ private:
   karto::LocalizedRangeScan * makeKartoScan(const std::vector<Point> & points) const;
 
   mutable karto::ScanMatcherParams params_;
-  karto::ScanMatcher * karto_matcher_;
   karto::LocalizedRangeScanVector candidates_;
 
   double range_max_;

@@ -36,16 +36,11 @@ void ScanMatcherKarto::initialize(const std::string & name,
     node->declare_parameter<bool>(name + ".use_response_expansion", false);
 
   range_max_ = range_max;
-  karto_matcher_ = nullptr;
 }
 
 void ScanMatcherKarto::addScans(const std::vector<ScanPtr>::const_iterator & begin,
                                 const std::vector<ScanPtr>::const_iterator & end)
 {
-  // Scan Matcher is now invalid
-  if (karto_matcher_) delete karto_matcher_;
-  karto_matcher_ = nullptr;
-
   // Add scans to our candidates
   for (auto scan = begin; scan != end; ++scan)
   {
@@ -145,10 +140,6 @@ double ScanMatcherKarto::scorePoints(const std::vector<Point> & points, const Po
 
 void ScanMatcherKarto::reset()
 {
-  // Clean up matcher
-  if (karto_matcher_) delete karto_matcher_;
-  karto_matcher_ = nullptr;
-
   // Clean up candidates_
   for (auto candidate : candidates_)
   {
