@@ -12,12 +12,28 @@ namespace ndt_2d
 void ScanMatcherKarto::initialize(const std::string & name,
                                   rclcpp::Node * node, double range_max)
 {
-  correlation_search_space_dimension_ =
+  *params_.m_pCorrelationSearchSpaceDimension =
     node->declare_parameter<double>(name + ".correlation_search_space_dimension", 0.3);
-  correlation_search_space_resolution_ =
+  *params_.m_pCorrelationSearchSpaceResolution =
     node->declare_parameter<double>(name + ".correlation_search_space_resolution", 0.01);
-  correlation_search_space_smear_deviation_ =
+  *params_.m_pCorrelationSearchSpaceSmearDeviation =
     node->declare_parameter<double>(name + ".correlation_search_space_smear_deviation", 0.03);
+  *params_.m_pDistanceVariancePenalty =
+    node->declare_parameter<double>(name + ".distance_variance_penalty", 0.09);
+  *params_.m_pAngleVariancePenalty =
+    node->declare_parameter<double>(name + ".angle_variance_penalty", 0.1218);
+  *params_.m_pFineSearchAngleOffset =
+    node->declare_parameter<double>(name + ".fine_search_angle_offset", 0.003491);
+  *params_.m_pCoarseSearchAngleOffset =
+    node->declare_parameter<double>(name + ".course_search_angle_offset", 0.3491);
+  *params_.m_pCoarseAngleResolution =
+    node->declare_parameter<double>(name + ".course_angle_resolution", 0.03491);
+  *params_.m_pMinimumAnglePenalty =
+    node->declare_parameter<double>(name + ".minimum_angle_penalty", 0.9);
+  *params_.m_pMinimumDistancePenalty =
+    node->declare_parameter<double>(name + ".minimum_distance_penalty", 0.5);
+  *params_.m_pUseResponseExpansion =
+    node->declare_parameter<bool>(name + ".use_response_expansion", false);
 
   range_max_ = range_max;
   karto_matcher_ = nullptr;
@@ -49,9 +65,10 @@ double ScanMatcherKarto::matchScan(const ScanPtr & scan, Pose2d & pose,
 
   karto::Pose2 best_pose;
   karto::ScanMatcher * matcher =
-    karto::ScanMatcher::Create(&params_, correlation_search_space_dimension_,
-                               correlation_search_space_resolution_,
-                               correlation_search_space_smear_deviation_,
+    karto::ScanMatcher::Create(&params_,
+                               params_.m_pCorrelationSearchSpaceDimension->GetValue(),
+                               params_.m_pCorrelationSearchSpaceResolution->GetValue(),
+                               params_.m_pCorrelationSearchSpaceSmearDeviation->GetValue(),
                                range_max_);
 
   double score = matcher->MatchScan(karto_scan, candidates_, best_pose, karto_covariance);

@@ -435,6 +435,7 @@ namespace karto
 
   public:
     ScanMatcherParams();
+    ~ScanMatcherParams();
     void Reset();
 
     //////////////////////////////////////////////////////////////////////////////

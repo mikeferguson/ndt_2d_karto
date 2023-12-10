@@ -770,6 +770,21 @@ namespace karto
     Reset();
   }
 
+  ScanMatcherParams::~ScanMatcherParams()
+  {
+    delete m_pCorrelationSearchSpaceDimension;
+    delete m_pCorrelationSearchSpaceResolution;
+    delete m_pCorrelationSearchSpaceSmearDeviation;
+    delete m_pDistanceVariancePenalty;
+    delete m_pAngleVariancePenalty;
+    delete m_pFineSearchAngleOffset;
+    delete m_pCoarseSearchAngleOffset;
+    delete m_pCoarseAngleResolution;
+    delete m_pMinimumAnglePenalty;
+    delete m_pMinimumDistancePenalty;
+    delete m_pUseResponseExpansion;
+  }
+
   void ScanMatcherParams::Reset()
   {
     //////////////////////////////////////////////////////////////////////////////

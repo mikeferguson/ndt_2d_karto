@@ -82,9 +82,6 @@ private:
   karto::ScanMatcher * karto_matcher_;
   karto::LocalizedRangeScanVector candidates_;
 
-  double correlation_search_space_dimension_;
-  double correlation_search_space_resolution_;
-  double correlation_search_space_smear_deviation_;
   double range_max_;
 };
 
