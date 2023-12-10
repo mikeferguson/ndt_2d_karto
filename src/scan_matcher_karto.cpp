@@ -17,19 +17,19 @@ void ScanMatcherKarto::initialize(const std::string & name,
   *params_.m_pCorrelationSearchSpaceResolution =
     node->declare_parameter<double>(name + ".correlation_search_space_resolution", 0.01);
   *params_.m_pCorrelationSearchSpaceSmearDeviation =
-    node->declare_parameter<double>(name + ".correlation_search_space_smear_deviation", 0.03);
+    node->declare_parameter<double>(name + ".correlation_search_space_smear_deviation", 0.1);
   *params_.m_pDistanceVariancePenalty =
     node->declare_parameter<double>(name + ".distance_variance_penalty", 0.09);
   *params_.m_pAngleVariancePenalty =
     node->declare_parameter<double>(name + ".angle_variance_penalty", 0.1218);
-  *params_.m_pFineSearchAngleOffset =
-    node->declare_parameter<double>(name + ".fine_search_angle_offset", 0.003491);
   *params_.m_pCoarseSearchAngleOffset =
-    node->declare_parameter<double>(name + ".course_search_angle_offset", 0.3491);
+    node->declare_parameter<double>(name + ".course_search_angle_offset", 0.349);
+  *params_.m_pFineSearchAngleResolution =
+    node->declare_parameter<double>(name + ".fine_search_angle_resolution", 0.00349);
   *params_.m_pCoarseAngleResolution =
-    node->declare_parameter<double>(name + ".course_angle_resolution", 0.03491);
+    node->declare_parameter<double>(name + ".course_angle_resolution", 0.0349);
   *params_.m_pMinimumAnglePenalty =
-    node->declare_parameter<double>(name + ".minimum_angle_penalty", 0.9);
+    node->declare_parameter<double>(name + ".minimum_angle_penalty", 1.0);
   *params_.m_pMinimumDistancePenalty =
     node->declare_parameter<double>(name + ".minimum_distance_penalty", 0.5);
   *params_.m_pUseResponseExpansion =

@@ -474,11 +474,12 @@ namespace karto
     Parameter<kt_double>* m_pDistanceVariancePenalty;
     Parameter<kt_double>* m_pAngleVariancePenalty;
 
-    // The range of angles to search during a coarse search and a finer search
-    Parameter<kt_double>* m_pFineSearchAngleOffset;
+    // The range of angles to search during a coarse search
+    // Fine search will always be set to 1/2 of the course resolution
     Parameter<kt_double>* m_pCoarseSearchAngleOffset;
 
-    // Resolution of angles to search during a coarse search
+    // Resolution of angles to search during a coarse search and fine search
+    Parameter<kt_double>* m_pFineSearchAngleResolution;
     Parameter<kt_double>* m_pCoarseAngleResolution;
 
     // Minimum value of the penalty multiplier so scores do not

@@ -198,7 +198,7 @@ namespace karto
       Vector2<kt_double> fineSearchResolution(m_pCorrelationGrid->GetResolution(), m_pCorrelationGrid->GetResolution());
       bestResponse = CorrelateScan(pScan, rMean, fineSearchOffset, fineSearchResolution,
                                    0.5 * m_pParams->m_pCoarseAngleResolution->GetValue(),
-                                   m_pParams->m_pFineSearchAngleOffset->GetValue(),
+                                   m_pParams->m_pFineSearchAngleResolution->GetValue(),
                                    doPenalize, rMean, rCovariance, true);
     }
 
@@ -819,8 +819,8 @@ namespace karto
     delete m_pCorrelationSearchSpaceSmearDeviation;
     delete m_pDistanceVariancePenalty;
     delete m_pAngleVariancePenalty;
-    delete m_pFineSearchAngleOffset;
     delete m_pCoarseSearchAngleOffset;
+    delete m_pFineSearchAngleResolution;
     delete m_pCoarseAngleResolution;
     delete m_pMinimumAnglePenalty;
     delete m_pMinimumDistancePenalty;
@@ -865,15 +865,15 @@ namespace karto
         "See DistanceVariancePenalty.",
         math::Square(math::DegreesToRadians(20)), GetParameterManager());
 
-    m_pFineSearchAngleOffset = new Parameter<kt_double>(
-        "FineSearchAngleOffset",
-        "The range of angles to search during a fine search.",
-        math::DegreesToRadians(0.2), GetParameterManager());
-
     m_pCoarseSearchAngleOffset = new Parameter<kt_double>(
         "CoarseSearchAngleOffset",
         "The range of angles to search during a coarse search.",
         math::DegreesToRadians(20), GetParameterManager());
+
+    m_pFineSearchAngleResolution = new Parameter<kt_double>(
+        "FineSearchAngleOffset",
+        "Resolution of angles to search during a fine search.",
+        math::DegreesToRadians(0.2), GetParameterManager());
 
     m_pCoarseAngleResolution = new Parameter<kt_double>(
         "CoarseAngleResolution",
