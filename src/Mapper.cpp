@@ -444,15 +444,12 @@ namespace karto
     // 5. set up correlation grid
     AddScans(rBaseScans, scanPose.GetPosition());
 
-    // 6. Transform points by angle
-    const PointVectorDouble& rPointReadings = scan->GetPointReadings();
-    Transform transform(scan->GetSensorPose());
+    // 6. Get the points in local frame
+    const PointVectorDouble& rPointReadings = scan->raw_points;
     Pose2Vector localPoints;
     const_forEach(PointVectorDouble, &rPointReadings)
     {
-      // do inverse transform to get points in local coordinates
-      Pose2 vec = transform.InverseTransformPose(Pose2(*iter, 0.0));
-      localPoints.push_back(vec);
+      localPoints.push_back(Pose2(*iter, 0.0));
     }
 
     // 7. setup offsets
