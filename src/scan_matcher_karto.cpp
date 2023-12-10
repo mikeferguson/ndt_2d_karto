@@ -56,7 +56,7 @@ void ScanMatcherKarto::addScans(const std::vector<ScanPtr>::const_iterator & beg
 
 double ScanMatcherKarto::matchScan(const ScanPtr & scan, Pose2d & pose,
                                    Eigen::Matrix3d & covariance,
-                                   size_t scan_points_to_use) const
+                                   size_t /*scan_points_to_use*/) const
 {
   karto::LocalizedRangeScan * karto_scan = makeKartoScan(scan);
 
@@ -72,13 +72,13 @@ double ScanMatcherKarto::matchScan(const ScanPtr & scan, Pose2d & pose,
                                range_max_);
 
   double score = matcher->MatchScan(karto_scan, candidates_, best_pose, karto_covariance);
-  std::cout << score << std::endl;
+  delete matcher;
+  delete karto_scan;
 
   // Set correction pose
   pose.x = best_pose.GetX() - scan->pose.x;
   pose.y = best_pose.GetY() - scan->pose.y;
   pose.theta = best_pose.GetHeading() - scan->pose.theta;
-  std::cout << pose.x << ", " << pose.y << ". " << pose.theta << std::endl;
 
   // Set covariance
   for (size_t i = 0; i < 3; ++i)
@@ -87,27 +87,60 @@ double ScanMatcherKarto::matchScan(const ScanPtr & scan, Pose2d & pose,
     {
       covariance(i, j) = karto_covariance(i, j);
     }
-    std::cout << covariance(i, 0) << " " << covariance(i, 1) << " " << covariance(i, 2) << std::endl;
   }
 
-  return score;
+  return -score;
 }
 
 double ScanMatcherKarto::scoreScan(const ScanPtr & scan) const
 {
-
-
-  return 0.0;
+  Pose2d pose;
+  return scoreScan(scan, pose);
 }
 
 double ScanMatcherKarto::scoreScan(const ScanPtr & scan, const Pose2d & pose) const
 {
-  return 0.0;
+  karto::LocalizedRangeScan * karto_scan = makeKartoScan(scan);
+  karto::Pose2 karto_pose(scan->pose.x + pose.x, scan->pose.y + pose.y,
+                          scan->pose.theta + pose.theta);
+  karto_scan->SetOdometricPose(karto_pose);
+  karto_scan->SetCorrectedPose(karto_pose);
+
+  karto::ScanMatcher * matcher =
+    karto::ScanMatcher::Create(&params_,
+                               params_.m_pCorrelationSearchSpaceDimension->GetValue(),
+                               params_.m_pCorrelationSearchSpaceResolution->GetValue(),
+                               params_.m_pCorrelationSearchSpaceSmearDeviation->GetValue(),
+                               range_max_);
+
+  double score = matcher->ComputeScore(karto_scan, candidates_);
+
+  delete matcher;
+  delete karto_scan;
+
+  return -score;
 }
 
 double ScanMatcherKarto::scorePoints(const std::vector<Point> & points, const Pose2d & pose) const
 {
-  return 0.0;
+  karto::LocalizedRangeScan * karto_scan = makeKartoScan(points);
+  karto::Pose2 karto_pose(pose.x, pose.y, pose.theta);
+  karto_scan->SetOdometricPose(karto_pose);
+  karto_scan->SetCorrectedPose(karto_pose);
+
+  karto::ScanMatcher * matcher =
+    karto::ScanMatcher::Create(&params_,
+                               params_.m_pCorrelationSearchSpaceDimension->GetValue(),
+                               params_.m_pCorrelationSearchSpaceResolution->GetValue(),
+                               params_.m_pCorrelationSearchSpaceSmearDeviation->GetValue(),
+                               range_max_);
+
+  double score = matcher->ComputeScore(karto_scan, candidates_);
+
+  delete matcher;
+  delete karto_scan;
+
+  return -score;
 }
 
 void ScanMatcherKarto::reset()
@@ -136,6 +169,24 @@ karto::LocalizedRangeScan * ScanMatcherKarto::makeKartoScan(const ScanPtr & scan
   }
 
   karto::Pose2 karto_pose(scan->pose.x, scan->pose.y, scan->pose.theta);
+  range_scan->SetOdometricPose(karto_pose);
+  range_scan->SetCorrectedPose(karto_pose);
+
+  return range_scan;
+}
+
+karto::LocalizedRangeScan * ScanMatcherKarto::makeKartoScan(const std::vector<Point> & points) const
+{
+  karto::LocalizedRangeScan * range_scan = new karto::LocalizedRangeScan(karto::Name("karto"));
+
+  range_scan->raw_points.resize(points.size());
+  for (size_t i = 0; i < points.size(); ++i)
+  {
+    auto & p = points[i];
+    range_scan->raw_points[i] = karto::Vector2<kt_double>(p.x, p.y);
+  }
+
+  karto::Pose2 karto_pose(0.0, 0.0, 0.0);
   range_scan->SetOdometricPose(karto_pose);
   range_scan->SetCorrectedPose(karto_pose);
 

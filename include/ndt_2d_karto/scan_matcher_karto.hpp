@@ -77,6 +77,7 @@ public:
 
 private:
   karto::LocalizedRangeScan * makeKartoScan(const ScanPtr & scan) const;
+  karto::LocalizedRangeScan * makeKartoScan(const std::vector<Point> & points) const;
 
   mutable karto::ScanMatcherParams params_;
   karto::ScanMatcher * karto_matcher_;

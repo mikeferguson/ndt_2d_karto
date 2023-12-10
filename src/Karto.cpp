@@ -139,70 +139,8 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  const PointVectorDouble LaserRangeFinder::GetPointReadings(LocalizedRangeScan* pLocalizedRangeScan,
-                                                             CoordinateConverter* pCoordinateConverter,
-                                                             kt_bool ignoreThresholdPoints,
-                                                             kt_bool flipY) const
+  kt_bool LaserRangeFinder::Validate(SensorData* /*pSensorData*/)
   {
-    /*
-    PointVectorDouble pointReadings;
-
-    Pose2 scanPose = pLocalizedRangeScan->GetSensorPose();
-
-    // compute point readings
-    kt_int32u beamNum = 0;
-    kt_double* pRangeReadings = pLocalizedRangeScan->GetRangeReadings();
-    for (kt_int32u i = 0; i < m_NumberOfRangeReadings; i++, beamNum++)
-    {
-      kt_double rangeReading = pRangeReadings[i];
-
-      if (ignoreThresholdPoints)
-      {
-        if (!math::InRange(rangeReading, GetMinimumRange(), GetRangeThreshold()))
-        {
-          continue;
-        }
-      }
-      else
-      {
-        rangeReading = math::Clip(rangeReading, GetMinimumRange(), GetRangeThreshold());
-      }
-
-      kt_double angle = scanPose.GetHeading() + GetMinimumAngle() + beamNum * GetAngularResolution();
-
-      Vector2<kt_double> point;
-
-      point.SetX(scanPose.GetX() + (rangeReading * cos(angle)));
-      point.SetY(scanPose.GetY() + (rangeReading * sin(angle)));
-
-      if (pCoordinateConverter != NULL)
-      {
-        Vector2<kt_int32s> gridPoint = pCoordinateConverter->WorldToGrid(point, flipY);
-        point.SetX(gridPoint.GetX());
-        point.SetY(gridPoint.GetY());
-      }
-
-      pointReadings.push_back(point);
-    }
-
-    return pointReadings;
-    */
-  }
-
-  kt_bool LaserRangeFinder::Validate(SensorData* pSensorData)
-  {
-    /*
-    LaserRangeScan* pLaserRangeScan = dynamic_cast<LaserRangeScan*>(pSensorData);
-
-    // verify number of range readings in LaserRangeScan matches the number of expected range readings
-    if (pLaserRangeScan->GetNumberOfRangeReadings() != GetNumberOfRangeReadings())
-    {
-      std::cout << "LaserRangeScan contains " << pLaserRangeScan->GetNumberOfRangeReadings()
-                << " range readings, expected " << GetNumberOfRangeReadings() << std::endl;
-      return false;
-    }
-    */
-
     return true;
   }
 
@@ -240,22 +178,4 @@ namespace karto
       }
     }
   }
-
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////////////////////////////
-
-  /*
-  std::string LaserRangeFinder::LaserRangeFinderTypeNames[6] =
-  {
-    "Custom",
-
-    "Sick_LMS100",
-    "Sick_LMS200",
-    "Sick_LMS291",
-
-    "Hokuyo_UTM_30LX",
-    "Hokuyo_URG_04LX"
-  };
-   */
 }  // namespace karto

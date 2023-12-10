@@ -3956,18 +3956,6 @@ namespace karto
 
     virtual kt_bool Validate(SensorData* pSensorData);
 
-    /**
-     * Get point readings (potentially scale readings if given coordinate converter is not null)
-     * @param pLocalizedRangeScan
-     * @param pCoordinateConverter
-     * @param ignoreThresholdPoints
-     * @param flipY
-     */
-    const PointVectorDouble GetPointReadings(LocalizedRangeScan* pLocalizedRangeScan,
-                                            CoordinateConverter* pCoordinateConverter,
-                                            kt_bool ignoreThresholdPoints = true,
-                                            kt_bool flipY = false) const;
-
   public:
     /**
      * Create a laser range finder of the given type and ID
@@ -6028,19 +6016,18 @@ namespace karto
       for (kt_int32u angleIndex = 0; angleIndex < nAngles; angleIndex++)
       {
         angle = startAngle + angleIndex * angleResolution;
-        ComputeOffsets(angleIndex, angle, localPoints, pScan);
+        ComputeOffsets(angleIndex, angle, localPoints);
       }
       // assert(math::DoubleEqual(angle, angleCenter + angleOffset));
     }
 
-  private:
     /**
      * Compute lookup value of points for given angle
      * @param angleIndex
      * @param angle
      * @param rLocalPoints
      */
-    void ComputeOffsets(kt_int32u angleIndex, kt_double angle, const Pose2Vector& rLocalPoints, LocalizedRangeScan* pScan)
+    void ComputeOffsets(kt_int32u angleIndex, kt_double angle, const Pose2Vector& rLocalPoints)
     {
       m_ppLookupArray[angleIndex]->SetSize(static_cast<kt_int32u>(rLocalPoints.size()));
       m_Angles.at(angleIndex) = angle;

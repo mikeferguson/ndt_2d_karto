@@ -331,6 +331,12 @@ namespace karto
                             kt_bool doingFineMatch);
 
     /**
+     * Compute the score
+     */
+    double ComputeScore(LocalizedRangeScan * scan,
+                        const LocalizedRangeScanVector& rBaseScans);
+
+    /**
      * Computes the positional covariance of the best pose
      * @param rBestPose
      * @param bestResponse

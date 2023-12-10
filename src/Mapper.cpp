@@ -424,6 +424,48 @@ namespace karto
     return bestResponse;
   }
 
+  double ScanMatcher::ComputeScore(LocalizedRangeScan * scan,
+                                   const LocalizedRangeScanVector & rBaseScans)
+  {
+    // 1. get scan position
+    Pose2 scanPose = scan->GetSensorPose();
+
+    // 2. get size of grid
+    Rectangle2<kt_int32s> roi = m_pCorrelationGrid->GetROI();
+
+    // 3. compute offset (in meters - lower left corner)
+    Vector2<kt_double> offset;
+    offset.SetX(scanPose.GetX() - (0.5 * (roi.GetWidth() - 1) * m_pCorrelationGrid->GetResolution()));
+    offset.SetY(scanPose.GetY() - (0.5 * (roi.GetHeight() - 1) * m_pCorrelationGrid->GetResolution()));
+
+    // 4. set offset
+    m_pCorrelationGrid->GetCoordinateConverter()->SetOffset(offset);
+
+    // 5. set up correlation grid
+    AddScans(rBaseScans, scanPose.GetPosition());
+
+    // 6. Transform points by angle
+    const PointVectorDouble& rPointReadings = scan->GetPointReadings();
+    Transform transform(scan->GetSensorPose());
+    Pose2Vector localPoints;
+    const_forEach(PointVectorDouble, &rPointReadings)
+    {
+      // do inverse transform to get points in local coordinates
+      Pose2 vec = transform.InverseTransformPose(Pose2(*iter, 0.0));
+      localPoints.push_back(vec);
+    }
+
+    // 7. setup offsets
+    m_pGridLookup->SetSize(1);
+    m_pGridLookup->ComputeOffsets(0, scanPose.GetHeading(), localPoints);
+
+    // 8. actual scoring
+    Vector2<kt_int32s> gridPoint = m_pCorrelationGrid->WorldToGrid(Vector2<kt_double>(scanPose.GetX(), scanPose.GetY()));
+    kt_int32s gridIndex = m_pCorrelationGrid->GridIndex(gridPoint);
+
+    return GetResponse(0, gridIndex);
+  }
+
   /**
    * Computes the positional covariance of the best pose
    * @param rBestPose
