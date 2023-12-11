@@ -62,8 +62,7 @@ void ScanMatcherKarto::addScans(const std::vector<ScanPtr>::const_iterator & beg
 }
 
 double ScanMatcherKarto::matchScan(const ScanPtr & scan, Pose2d & pose,
-                                   Eigen::Matrix3d & covariance,
-                                   size_t /*scan_points_to_use*/) const
+                                   Eigen::Matrix3d & covariance) const
 {
   karto::LocalizedRangeScan * karto_scan = makeKartoScan(scan);
 
