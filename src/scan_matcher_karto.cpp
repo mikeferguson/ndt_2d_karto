@@ -100,15 +100,8 @@ double ScanMatcherKarto::matchScan(const ScanPtr & scan, Pose2d & pose,
 
 double ScanMatcherKarto::scoreScan(const ScanPtr & scan) const
 {
-  Pose2d pose;
-  return scoreScan(scan, pose);
-}
-
-double ScanMatcherKarto::scoreScan(const ScanPtr & scan, const Pose2d & pose) const
-{
   karto::LocalizedRangeScan * karto_scan = makeKartoScan(scan);
-  karto::Pose2 karto_pose(scan->pose.x + pose.x, scan->pose.y + pose.y,
-                          scan->pose.theta + pose.theta);
+  karto::Pose2 karto_pose(scan->pose.x, scan->pose.y, scan->pose.theta);
   karto_scan->SetOdometricPose(karto_pose);
   karto_scan->SetCorrectedPose(karto_pose);
 
