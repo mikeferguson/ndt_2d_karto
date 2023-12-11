@@ -82,9 +82,9 @@ double ScanMatcherKarto::matchScan(const ScanPtr & scan, Pose2d & pose,
   delete karto_scan;
 
   // Set correction pose
-  pose.x = best_pose.GetX() - scan->pose.x;
-  pose.y = best_pose.GetY() - scan->pose.y;
-  pose.theta = best_pose.GetHeading() - scan->pose.theta;
+  pose.x = best_pose.GetX() - scan->getPose().x;
+  pose.y = best_pose.GetY() - scan->getPose().y;
+  pose.theta = best_pose.GetHeading() - scan->getPose().theta;
 
   // Set covariance
   for (size_t i = 0; i < 3; ++i)
@@ -101,7 +101,7 @@ double ScanMatcherKarto::matchScan(const ScanPtr & scan, Pose2d & pose,
 double ScanMatcherKarto::scoreScan(const ScanPtr & scan) const
 {
   karto::LocalizedRangeScan * karto_scan = makeKartoScan(scan);
-  karto::Pose2 karto_pose(scan->pose.x, scan->pose.y, scan->pose.theta);
+  karto::Pose2 karto_pose(scan->getPose().x, scan->getPose().y, scan->getPose().theta);
   karto_scan->SetOdometricPose(karto_pose);
   karto_scan->SetCorrectedPose(karto_pose);
 
@@ -155,15 +155,16 @@ void ScanMatcherKarto::reset()
 karto::LocalizedRangeScan * ScanMatcherKarto::makeKartoScan(const ScanPtr & scan) const
 {
   karto::LocalizedRangeScan * range_scan = new karto::LocalizedRangeScan(karto::Name("karto"));
-  
-  range_scan->raw_points.resize(scan->points.size());
-  for (size_t i = 0; i < scan->points.size(); ++i)
+
+  auto points = scan->getPoints();
+  range_scan->raw_points.resize(points.size());
+  for (size_t i = 0; i < points.size(); ++i)
   {
-    auto & p = scan->points[i];
+    auto & p = points[i];
     range_scan->raw_points[i] = karto::Vector2<kt_double>(p.x, p.y);
   }
 
-  karto::Pose2 karto_pose(scan->pose.x, scan->pose.y, scan->pose.theta);
+  karto::Pose2 karto_pose(scan->getPose().x, scan->getPose().y, scan->getPose().theta);
   range_scan->SetOdometricPose(karto_pose);
   range_scan->SetCorrectedPose(karto_pose);
 
